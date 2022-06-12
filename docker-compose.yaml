@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+
+  mysql-kc:
+    image: mysql:8.0.27
+    ports:
+      - 10000:3306
+    restart: unless-stopped
+    environment:
+      MYSQL_BIND_ADDRES: 192.168.1.2
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: keycloak
+      MYSQL_DATABASE: keycloak
+      MYSQL_ROOT_PASSWORD: keycloak
+      JDBC_PARAMS: "serverTimezone=UTC"
+
+  keycloak:
+    image: jboss/keycloak:16.1.1
+    container_name: keycloak
+    restart: unless-stopped
+    ports:
+      # HTTP
+      - 7009:8080
+      # HTTPS
+      - 7010:8443
+    volumes:
+      - ./certs/:/etc/x509/https/
+      - ./deployments:/opt/jboss/keycloak/standalone/deployments
+    environment:
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+      KEYCLOAK_HOSTNAME:
+      PROXY_ADDRESS_FORWARDING: 'true'
+      DB_VENDOR: mysql
+      DB_ADDR: 192.168.1.2
+      DB_PORT: 10000
+      DB_USER: keycloak
+      DB_PASSWORD: keycloak
+      DB_DATABASE: keycloak
+      JDBC_PARAMS: "serverTimezone=UTC"
+      X509_CA_BUNDLE: /etc/x509/https/tls.cer
